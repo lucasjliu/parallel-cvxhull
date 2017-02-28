@@ -1,10 +1,19 @@
+//
+//  test.cpp
+//
+//	@brief: test case for convex hull algorithm
+//
+//  by Jiahuan.Liu
+//	jiahaun.liu@outlook.com
+//
+//  02/26/2017
+//
 #include <mpblocks/clarkson93.hpp>
 
 using namespace mpblocks;
 using namespace mpblocks::clarkson93;
 
 typedef double Val_t;
-//typedef Eigen::Matrix<Val_t,2,1> Vector;
 typedef Eigen::Matrix<Val_t,2,1> Point;
 
 typedef ExampleTraits2<Val_t,2>  Traits;
@@ -31,16 +40,19 @@ struct Hull
         m_hull.m_sMgr.reserve(MAX_NUM);
     }
 
-    void addPoint(val_t x, val_t y)
+    bool addPoint(val_t x, val_t y)
     {
-        std::cout << "add: " << x << " " << y << std::endl;
         m_ptStore.emplace_back(x,y);
         if( m_ptStore.size() < 3 )
-            return;
+            return true;
         else if( m_ptStore.size() == 3)
+		{
             m_hull.init( &m_ptStore[0], &m_ptStore[3], [](Point* ptr){return ptr;} );
+			return true;
+		}
         else
-            m_hull.insert(&m_ptStore.back());
+            return m_hull.insert(&m_ptStore.back());
+		//printSimplexPeaks();
     }
 
     void clear()
@@ -66,7 +78,7 @@ struct Hull
 
     void initRand() 
     {
-	    srand(time(NULL));
+	    srand((unsigned int)time(NULL));
     }
 
     bool autoStep()
@@ -75,49 +87,39 @@ struct Hull
         return true;
     }
 
-    void print()
-    {
-        std::cout << m_hull.m_sMgr.size() << std::endl;
+    void printSimplexPeaks()
+	{
+		std::cout << m_hull.m_sMgr.size() << std::endl;
         for( Simplex& S : m_hull.m_sMgr )
-        {
-            std::cout << 1 << std::endl;
-            if( !S.sets[ clarkson93::simplex::HULL] )
-                continue;
-
-            Point peak = *(S.V[S.iPeak]);
-            printf("%.2f %.2f\n", (peak)[0], (peak)[0]);
-            /*std::vector<Point*> p;
-            std::copy_if( S.V, S.V+3,
-                std::back_inserter(p),
-                [peak](Point* v){ return v != peak; } );
-
-            Point p1 = *(p[0]);
-            Point p2 = *(p[1]);*/
-
-            //printf("%.2f %.2f\n%.2f %.2f\n\n", p1[0], p1[1], p2[0], p2[1]);
+		{
+			if( !S.sets[ clarkson93::simplex::XV_HULL] || !S.V[S.iPeak] )
+				continue;
+			Point peak = *(S.V[S.iPeak]);
+			printf("%.2f %.2f\n", (peak)[0], (peak)[1]);
         }
     }
+	
+	void print()
+	{
+		for( Simplex& S : m_hull.m_sMgr )
+		{
+			//if (!m_hull.peak(S)) continue;
+			//Point peak = *m_hull.peak(S);
+			if ( !S.V[S.iPeak] ) continue;
+			Point peak = *(S.V[S.iPeak]);
+			printf("%.2f %.2f\n", (peak)[0], (peak)[1]);
+		}
+	}
 };
 
 int main()
 {
     Hull hull;
-    hull.addPoint(0,0);
-    hull.addPoint(0.2,0);
-    hull.addPoint(0,0.2);
-    hull.addPoint(0.15,0.1);
-    hull.addPoint(0.1,0.15);
+	hull.addPoint(0,0);
+	hull.addPoint(0.2,0);
+	hull.addPoint(0,0.2);
+	hull.addPoint(0.15,0.1);
+	hull.addPoint(0.1,0.15);
     hull.addPoint(0.2,0.2);
-    hull.print();
-
-    /*
-    srand(time(NULL));
-    std::cout << rand() / (double)RAND_MAX << std::endl
-        << rand() / (double)RAND_MAX << std::endl
-        << rand() / (double)RAND_MAX << std::endl
-        << rand() / (double)RAND_MAX << std::endl
-        << rand() / (double)RAND_MAX << std::endl
-        << rand() / (double)RAND_MAX << std::endl
-        << rand() / (double)RAND_MAX << std::endl;
-    */
+	//hull.print();
 }

@@ -181,8 +181,9 @@ class Triangulation:
          *  @param  x   const ref to the new point to add
          *  @param  S   an x-visible facet, if null (default) will search for one
          */
-        void insert(const PointRef x, SimplexRef S);
-        void insert(const PointRef x);
+        //mod by lucas 02/2017
+        bool insert(const PointRef x, SimplexRef S);
+        bool insert(const PointRef x);
 
         /// destroys all simplex objects that have been generated and clears all
         /// lists/ sets

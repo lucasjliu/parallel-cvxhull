@@ -133,22 +133,24 @@ void Triangulation<Traits>::init(
 }
 
 
+//mod by lucas 02/2017
 template <class Traits>
-void Triangulation<Traits>::insert(PointRef x, SimplexRef S)
+bool Triangulation<Traits>::insert(PointRef x, SimplexRef S)
 {
     SimplexRef So_ref = find_x_visible(x,S);
     Simplex&   So     = m_deref.simplex(So_ref);
     if( !isMember(So, simplex::HULL) )
-        return;
+        return false;
 
     fill_x_visible(s_optLvl, x, So_ref);
     alter_x_visible(s_optLvl, x);
+	return true;
 }
 
 template <class Traits>
-void Triangulation<Traits>::insert(PointRef x)
+bool Triangulation<Traits>::insert(PointRef x)
 {
-    insert( x, m_origin );
+    return insert( x, m_origin );
 }
 
 
