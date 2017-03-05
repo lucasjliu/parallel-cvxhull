@@ -13,85 +13,137 @@
 
 #include "hull.h"
 
-Hull::Hull()
+PointVec::PointVec(int num)
 {
-    m_ptStore.reserve(MAX_NUM);
-    m_hull.m_antiOrigin = 0;
-    m_hull.m_sMgr.reserve(MAX_NUM);
+    base_t::reserve(num);
+    while (num--)
+    {
+        random();
+    }
 }
 
-bool Hull::addPoint(val_t x, val_t y)
+void PointVec::random()
 {
-    m_ptStore.emplace_back(x,y);
-    bool isPeak = true;
-    if (m_ptStore.size() == 3)
-        m_hull.init( &m_ptStore[0], &m_ptStore[3], [](Point* ptr){return ptr;} );
-    else if (m_ptStore.size() > 3)
-        isPeak = m_hull.insert(&m_ptStore.back());
-    //if (isPeak)
-        //m_peaks.insert(&m_ptStore.back());
-    return isPeak;
+    base_t::emplace_back(rand() / (val_t)RAND_MAX,
+                         rand() / (val_t)RAND_MAX);
 }
 
-void Hull::clear()
-{
-    m_hull.m_xv_walked.clear();
-    m_hull.m_xvh.clear();
-    m_hull.m_ridges.clear();
-
-    m_hull.clear();
-    m_ptStore.clear();
-}
-
-void Hull::random()
-{
-    addPoint(  rand() / (val_t)RAND_MAX,
-                rand() / (val_t)RAND_MAX  );
-}
-
-void Hull::initRand(long seed) 
+void PointVec::initRand(long seed) 
 {
     srand((unsigned int)seed);
 }
 
-void Hull::initRand() 
+Hull::Hull() :_size(0)
 {
-    srand((unsigned int)time(NULL));
+    _hull.m_antiOrigin = 0;
+    _hull.m_sMgr.reserve(MAX_NUM);
 }
 
-bool Hull::autoStep()
+bool Hull::insert(PointRef p)
 {
-    random();
-    return true;
+    if (_size < 3)
+    {
+        _init[_size] = p;
+        _addPeak(p);
+    }
+
+    _size++;
+    bool isPeak = true;
+
+    if (_size == 3)
+    {
+        _hull.init(_init, _init + 3, [](PointRef* pRef){return *pRef;});
+    }
+    else if (_size > 3)
+    {
+        isPeak = _hull.insert(p);
+    }
+
+    return isPeak;
+}
+
+void Hull::insert(std::vector<PointRef>& pointRefs)
+{
+    for (auto& p : pointRefs)
+    {
+        insert(p);
+    }
+}
+
+void Hull::insert(PointVec& points)
+{
+    for (auto& p : points)
+    {
+        insert(&p);
+    }
+}
+
+Hull::hash_t Hull::_hash(PointRef p)
+{
+    return reinterpret_cast<hash_t&>((*p)[0]) |
+        (reinterpret_cast<hash_t&>((*p)[1]) << 32);
+}
+
+Hull::hash_t Hull::_hash(Point& p)
+{
+    return _hash(&p);
+}
+
+void Hull::_addPeak(PointRef p)
+{
+    double hash = _hash(p);
+    if (_peakSet.find(hash) == _peakSet.end())
+    {
+        _peaks.push_back(p);
+        _peakSet.insert(hash);
+    }
+}
+
+void Hull::clear()
+{
+    _hull.m_xv_walked.clear();
+    _hull.m_xvh.clear();
+    _hull.m_ridges.clear();
+    _hull.clear();
 }
 
 void Hull::printPeaks()
 {
-    for( Simplex& S : m_hull.m_sMgr )
+    for(auto& S : _hull.m_sMgr)
     {
-        //if (!m_hull.peak(S)) continue;
-        //Point peak = *m_hull.peak(S);
         if ( !S.V[S.iPeak] ) continue;
         Point peak = *(S.V[S.iPeak]);
         printf("%.2f %.2f\n", (peak)[0], (peak)[1]);
     }
 }
 
-int Hull::getPeakNum()
+std::vector<Hull::PointRef>& Hull::getPeaks()
 {
-    return m_peaks.size();
+    for(auto& S : _hull.m_sMgr)
+    {
+        PointRef p = S.V[S.iPeak];
+        if (p) _addPeak(p);
+    }
+    return _peaks;
 }
 
 void testHull()
 {
+    PointVec points;
+    points.emplace_back(0,0);
+    points.emplace_back(0.2,0);
+    points.emplace_back(0,0.2);
+    points.emplace_back(0.05,0.1);
+    points.emplace_back(0.1,0.15);
+    points.emplace_back(0.2,0.2);
+
     Hull hull;
-    assert(hull.addPoint(0,0));
-	assert(hull.addPoint(0.2,0));
-	assert(hull.addPoint(0,0.2));
-	assert(!hull.addPoint(0.05,0.1));
-	assert(hull.addPoint(0.1,0.15));
-    assert(hull.addPoint(0.2,0.2));
+    assert(hull.insert(&points[0]));
+	assert(hull.insert(&points[1]));
+	assert(hull.insert(&points[2]));
+	assert(!hull.insert(&points[3]));
+	assert(hull.insert(&points[4]));
+    assert(hull.insert(&points[5]));
 	hull.printPeaks();
-    std::cout << hull.getPeakNum() << std::endl;
-    //assert(hull.getPeakNum() == 4);
+    assert(hull.getPeaks().size() == 5);
 }

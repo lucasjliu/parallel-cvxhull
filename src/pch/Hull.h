@@ -11,50 +11,70 @@
 
 #include <mpblocks/clarkson93.hpp>
 #include <unordered_set>
+#include <cstdint>
 
 using namespace mpblocks;
 using namespace mpblocks::clarkson93;
 
 #define MAX_NUM 100000
 
-typedef double Val_t;
+typedef float Val_t;
 #define NDim 2
 typedef ExampleTraits2<Val_t, NDim> Traits;
+typedef Triangulation<Traits> Triangulation_t;
+typedef Triangulation_t::Point Point;
+
+class PointVec: public std::vector<Point>
+{
+    using val_t = Val_t ;
+    using base_t = std::vector<Point>;
+
+public:
+    PointVec() {}
+
+    PointVec(int num);
+
+    void random();
+
+    static void initRand(long seed = time(NULL));
+};
 
 class Hull
 {
-    using val_t = Val_t ;
-    using Triangulation_t = Triangulation<Traits>;
+public:
+    using hash_t = int64_t;
     using Simplex = Triangulation_t::Simplex;
-    using Point = Triangulation_t::Point;
     using PointRef = Triangulation_t::PointRef;
-    using PointHashSet = std::unordered_set<double>;
-    
-    std::vector<Point>      m_ptStore;
-    Triangulation_t         m_hull;
-    std::vector<PointRef>   m_peaks;
+    using PointHashSet = std::unordered_set<hash_t>;
 
 public:
     Hull();
 
-    bool addPoint(val_t x, val_t y);
+    bool insert(PointRef p);
+
+    void insert(std::vector<PointRef>& pointRefs);
+
+    void insert(PointVec& points);
 
     void clear();
-
-    void random();
-
-    void initRand(long seed);
-
-    void initRand();
-
-    bool autoStep();
 	
 	void printPeaks();
 
-    int getPeakNum();
+    std::vector<PointRef>& getPeaks();
 
 private:
-    //double 
+    hash_t _hash(Point& p);
+
+    hash_t _hash(PointRef p);
+
+    void _addPeak(PointRef p);
+
+private:
+    Triangulation_t         _hull;
+    std::vector<PointRef>   _peaks;
+    PointHashSet            _peakSet;
+    PointRef                _init[NDim + 2];
+    size_t                  _size;
 };
 
 void testHull();
