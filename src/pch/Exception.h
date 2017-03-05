@@ -23,6 +23,23 @@
 class Exception : public std::exception
 {
 public:
+    explicit Exception(const std::string& str) noexcept
+    : _str(str), _code(0)
+    {
+    #if _NEED_BACKTRACE
+        backtrace();
+    #endif
+    }
+    
+    Exception(const std::string& str, int code) noexcept
+    : _code(code)
+    {
+        _str = str + ": " + strerror(code);
+    #if _NEED_BACKTRACE
+        backtrace();
+    #endif
+    }
+
     explicit Exception(std::string& str) noexcept
     : _str(std::forward<std::string>(str)), _code(0)
     {

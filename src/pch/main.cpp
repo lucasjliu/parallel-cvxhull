@@ -20,5 +20,6 @@ int main()
 	hull.addPoint(0.1,0.15);
     hull.addPoint(0.2,0.2);
 	hull.printPeaks();
-	testTimer();
+	//testTimer();
+	//testUnitTest();
 }
