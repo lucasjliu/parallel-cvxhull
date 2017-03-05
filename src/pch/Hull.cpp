@@ -23,15 +23,14 @@ Hull::Hull()
 bool Hull::addPoint(val_t x, val_t y)
 {
     m_ptStore.emplace_back(x,y);
-    if( m_ptStore.size() < 3 )
-        return true;
-    else if( m_ptStore.size() == 3)
-    {
+    bool isPeak = true;
+    if (m_ptStore.size() == 3)
         m_hull.init( &m_ptStore[0], &m_ptStore[3], [](Point* ptr){return ptr;} );
-        return true;
-    }
-    else
-        return m_hull.insert(&m_ptStore.back());
+    else if (m_ptStore.size() > 3)
+        isPeak = m_hull.insert(&m_ptStore.back());
+    //if (isPeak)
+        //m_peaks.insert(&m_ptStore.back());
+    return isPeak;
 }
 
 void Hull::clear()
@@ -76,4 +75,23 @@ void Hull::printPeaks()
         Point peak = *(S.V[S.iPeak]);
         printf("%.2f %.2f\n", (peak)[0], (peak)[1]);
     }
+}
+
+int Hull::getPeakNum()
+{
+    return m_peaks.size();
+}
+
+void testHull()
+{
+    Hull hull;
+    assert(hull.addPoint(0,0));
+	assert(hull.addPoint(0.2,0));
+	assert(hull.addPoint(0,0.2));
+	assert(!hull.addPoint(0.05,0.1));
+	assert(hull.addPoint(0.1,0.15));
+    assert(hull.addPoint(0.2,0.2));
+	hull.printPeaks();
+    std::cout << hull.getPeakNum() << std::endl;
+    //assert(hull.getPeakNum() == 4);
 }

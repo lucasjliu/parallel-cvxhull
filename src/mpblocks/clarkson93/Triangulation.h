@@ -113,6 +113,7 @@ class Triangulation:
         typedef Triangulation<Traits>   This;
         typedef HorizonRidge<Traits>    Ridge;
 
+        //####TODO: try unordered_set
         typedef std::set<PointRef>      PointSet;
         typedef std::vector<SimplexRef> SimplexSet;
         typedef std::vector<Ridge>      HorizonSet;
@@ -181,7 +182,7 @@ class Triangulation:
          *  @param  x   const ref to the new point to add
          *  @param  S   an x-visible facet, if null (default) will search for one
          */
-        //mod by lucas 02/2017
+        //####mod by lucas 02/2017
         bool insert(const PointRef x, SimplexRef S);
         bool insert(const PointRef x);
 

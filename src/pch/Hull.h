@@ -10,25 +10,29 @@
 //
 
 #include <mpblocks/clarkson93.hpp>
+#include <unordered_set>
 
 using namespace mpblocks;
 using namespace mpblocks::clarkson93;
 
-typedef double Val_t;
-typedef Eigen::Matrix<Val_t,2,1> Point;
-
-typedef ExampleTraits2<Val_t,2>  Traits;
-typedef typename Traits::Simplex  Simplex;
-typedef Triangulation<Traits>     Triangulation_t;
-
 #define MAX_NUM 100000
+
+typedef double Val_t;
+#define NDim 2
+typedef ExampleTraits2<Val_t, NDim> Traits;
 
 class Hull
 {
-    typedef Val_t val_t;
+    using val_t = Val_t ;
+    using Triangulation_t = Triangulation<Traits>;
+    using Simplex = Triangulation_t::Simplex;
+    using Point = Triangulation_t::Point;
+    using PointRef = Triangulation_t::PointRef;
+    using PointHashSet = std::unordered_set<double>;
     
-    std::vector<Point>  m_ptStore;
-    Triangulation_t     m_hull;
+    std::vector<Point>      m_ptStore;
+    Triangulation_t         m_hull;
+    std::vector<PointRef>   m_peaks;
 
 public:
     Hull();
@@ -46,4 +50,11 @@ public:
     bool autoStep();
 	
 	void printPeaks();
+
+    int getPeakNum();
+
+private:
+    //double 
 };
+
+void testHull();

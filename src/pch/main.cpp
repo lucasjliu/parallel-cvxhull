@@ -12,14 +12,7 @@
 
 int main()
 {
-    Hull hull;
-	hull.addPoint(0,0);
-	hull.addPoint(0.2,0);
-	hull.addPoint(0,0.2);
-	hull.addPoint(0.15,0.1);
-	hull.addPoint(0.1,0.15);
-    hull.addPoint(0.2,0.2);
-	hull.printPeaks();
+    testHull();
 	testTimer();
 	testUnitTest();
 }
