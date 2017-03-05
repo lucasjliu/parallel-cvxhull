@@ -3,7 +3,7 @@
 //
 //	@brief: a unit test class for a certain type of functor
 //
-//  @interface: add(...): add testcase and ground truth
+//  @interface: addCase(...): add testcase and ground truth
 //              run(): run testcases and print result, time cost
 //
 //  by Jiahuan.Liu
@@ -58,10 +58,10 @@ public:
     void run();
 
     template <typename ...Args>
-    void add(ret_type& truth, Args&... args);
+    void addCase(ret_type& truth, Args&... args);
 
     template <typename ...Args>
-    void add(const ret_type& truth, const Args&... args);
+    void addCase(const ret_type& truth, const Args&... args);
 private:
     std::vector<Test> _tests;
     std::vector<ret_type> _truths;
@@ -110,7 +110,7 @@ void UnitTest<Func, Ret>::run()
 
 template<typename Func, typename Ret>
 template <typename ...Args>
-void UnitTest<Func, Ret>::add(ret_type& truth, Args&... args)
+void UnitTest<Func, Ret>::addCase(ret_type& truth, Args&... args)
 {
     Test test = std::bind(_func, _timer, std::forward<Args>(args)...);
     _tests.push_back(std::move(test));
@@ -119,7 +119,7 @@ void UnitTest<Func, Ret>::add(ret_type& truth, Args&... args)
 
 template<typename Func, typename Ret>
 template <typename ...Args>
-void UnitTest<Func, Ret>::add(const ret_type& truth, const Args&... args)
+void UnitTest<Func, Ret>::addCase(const ret_type& truth, const Args&... args)
 {
     Test test = std::bind(_func, _timer, args...);
     _tests.push_back(std::move(test));

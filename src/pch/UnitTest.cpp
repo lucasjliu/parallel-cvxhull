@@ -72,9 +72,9 @@ void testUnitTest()
 {
     auto null_task0 = [](Timer& t, int a){return a;};
     auto t0 = UnitTestFactory::create<int>(null_task0);
-    t0.add(1, 1);
-    t0.add(2, 2);
-    t0.add(1, 0);
+    t0.addCase(1, 1);
+    t0.addCase(2, 2);
+    t0.addCase(1, 0);
     __TRY__
     t0.run();
     __CATCH__(decltype(t0)::Exception& e)
@@ -83,10 +83,10 @@ void testUnitTest()
 
     auto null_task1 = [](Timer& t, std::vector<int> v){usleep(1000); return v;};
     auto t1 = UnitTestFactory::create<std::vector<int>>(null_task1);
-    t1.add({}, std::vector<int>({}));
-    t1.add({1,2,3}, std::vector<int>({1,2,3}));
-    t1.add({1,2,4}, std::vector<int>({1,2,3}));
-    t1.add({}, std::vector<int>({}));
+    t1.addCase({}, std::vector<int>({}));
+    t1.addCase({1,2,3}, std::vector<int>({1,2,3}));
+    t1.addCase({1,2,4}, std::vector<int>({1,2,3}));
+    t1.addCase({}, std::vector<int>({}));
     __TRY__
     t1.run();
     __CATCH__(decltype(t1)::Exception& e)
