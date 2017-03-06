@@ -9,6 +9,9 @@
 //  03/03/2017
 //
 
+#ifndef _HULL_H
+#define _HULL_H
+
 #include <mpblocks/clarkson93.hpp>
 #include <unordered_set>
 #include <cstdint>
@@ -49,7 +52,7 @@ public:
 	using PointHashSet = std::unordered_set<hash_t>;
 
 public:
-	Hull();
+	Hull(int n = NDim + 1);
 
 	bool insert(PointRef p);
 
@@ -79,3 +82,5 @@ private:
 };
 
 void testHull();
+
+#endif

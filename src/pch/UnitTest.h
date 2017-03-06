@@ -11,6 +11,8 @@
 //
 //  03/04/2017
 //
+#ifndef _UNITTEST_H
+#define _UNITTEST_H
 
 #include <chrono>
 #include <functional>
@@ -127,3 +129,5 @@ void UnitTest<Func, Ret>::addCase(const ret_type& truth, const Args&... args)
 }
 
 void testUnitTest();
+
+#endif
