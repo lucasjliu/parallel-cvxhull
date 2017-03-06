@@ -48,6 +48,7 @@ bool Hull::insert(PointRef p)
 	}
 
 	_size++;
+	
 	bool isPeak = true;
 
 	if (_size == 3)
@@ -115,7 +116,7 @@ void Hull::printPeaks()
 		Point     p1 = *(p[0]);
 		Point     p2 = *(p[1]);
 		
-		printf("(%.1f, %.1f) -> (%.1f, %.2f)\n",
+		printf("(%f, %f) -> (%f, %f)\n",
 				p1[0], p1[1], p2[0], p2[1]);
 		
 		//ectx.move_to(p1);

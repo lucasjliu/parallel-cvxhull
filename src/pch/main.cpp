@@ -7,12 +7,14 @@
 //  02/26/2017
 //
 
-#include "hull.h"
+#include "Hull.h"
 #include "UnitTest.h"
+#include "HullAlg.h"
 
 int main()
 {
-	testHull();
-	testTimer();
-	testUnitTest();
+	//testHull();
+	//testTimer();
+	//testUnitTest();
+	testAlg();
 }
