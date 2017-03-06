@@ -1,5 +1,5 @@
-CPPFLAGS=-g -Wall -Wextra -std=c++11 -iquote src/ -Wno-sign-compare
-CXX=g++
+CPPFLAGS=-g -Wall -Wextra -std=c++11 -iquote src/ -Wno-sign-compare -fopenmp
+CXX=/usr/local/bin/g++-6
 SRC_DIR=src/pch
 BIN_DIR=bin
 OBJ_DIR=obj
