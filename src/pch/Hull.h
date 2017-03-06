@@ -1,5 +1,5 @@
 //
-//  hull.h
+//  Hull.h
 //
 //	@brief: incremental convex hull data struture
 //

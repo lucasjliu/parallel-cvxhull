@@ -10,6 +10,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 
 #include "hull.h"
 
@@ -33,10 +34,10 @@ void PointVec::initRand(long seed)
 	srand((unsigned int)seed);
 }
 
-Hull::Hull() :_size(0)
+Hull::Hull(int n) :_size(0)
 {
 	_hull.m_antiOrigin = 0;
-	_hull.m_sMgr.reserve(MAX_NUM);
+	_hull.m_sMgr.reserve(n);
 }
 
 bool Hull::insert(PointRef p)
