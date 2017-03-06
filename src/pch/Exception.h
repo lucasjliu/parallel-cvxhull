@@ -10,6 +10,7 @@
 
 #include <exception>
 #include <string>
+#include <cstring>
 #include <cerrno>
 #include <execinfo.h>
 #include <utility>
@@ -19,6 +20,8 @@
 #define __TRY__ try{
 #define __CATCH__(a) }catch(a){
 #define __END__ }
+
+using std::strerror;
 
 class Exception : public std::exception
 {
