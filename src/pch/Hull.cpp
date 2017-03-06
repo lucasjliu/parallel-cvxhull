@@ -1,5 +1,5 @@
 //
-//  hull.cpp
+//  Hull.cpp
 //
 //  by Jiahuan.Liu
 //	jiahaun.liu@outlook.com
@@ -12,7 +12,7 @@
 #include <time.h>
 #include <math.h>
 
-#include "hull.h"
+#include "Hull.h"
 
 PointVec::PointVec(int num)
 {
@@ -37,7 +37,7 @@ void PointVec::initRand(long seed)
 Hull::Hull(int n) :_size(0)
 {
 	_hull.m_antiOrigin = 0;
-	_hull.m_sMgr.reserve(n);
+	_hull.m_sMgr.reserve((NDim + 1) * n);
 }
 
 bool Hull::insert(PointRef p)
@@ -45,7 +45,6 @@ bool Hull::insert(PointRef p)
 	if (_size < 3)
 	{
 		_init[_size] = p;
-		_addPeak(p);
 	}
 
 	_size++;
@@ -90,16 +89,6 @@ Hull::hash_t Hull::_hash(Point& p)
 	return _hash(&p);
 }
 
-void Hull::_addPeak(PointRef p)
-{
-	double hash = _hash(p);
-	if (_peakSet.find(hash) == _peakSet.end())
-	{
-		_peaks.push_back(p);
-		_peakSet.insert(hash);
-	}
-}
-
 void Hull::clear()
 {
 	_hull.m_xv_walked.clear();
@@ -108,24 +97,54 @@ void Hull::clear()
 	_hull.clear();
 }
 
+#include <stdio.h>
+
 void Hull::printPeaks()
 {
-	for(auto& S : _hull.m_sMgr)
+	for( Simplex& S : _hull.m_sMgr )
 	{
-		if ( !S.V[S.iPeak] ) continue;
-		Point peak = *(S.V[S.iPeak]);
-		printf("%.2f %.2f\n", (peak)[0], (peak)[1]);
+		if( !S.sets[ clarkson93::simplex::HULL] )
+			continue;
+		
+		Point* peak = S.V[S.iPeak];
+		std::vector<Point*> p;
+		std::copy_if( S.V, S.V+3,
+						std::back_inserter(p),
+						[peak](Point* v){ return v != peak; } );
+		
+		Point     p1 = *(p[0]);
+		Point     p2 = *(p[1]);
+		
+		printf("(%.1f, %.1f) -> (%.1f, %.2f)\n",
+				p1[0], p1[1], p2[0], p2[1]);
+		
+		//ectx.move_to(p1);
+		//ectx.line_to(p2);
 	}
 }
 
-PointRefVec& Hull::getPeaks()
+#include "Logger.h"
+
+PointRefVec Hull::getPeaks()
 {
+	PointRefVec peaks;
+	PointHashSet peakSet;
+
 	for(auto& S : _hull.m_sMgr)
 	{
-		PointRef p = S.V[S.iPeak];
-		if (p) _addPeak(p);
+		if(!S.sets[clarkson93::simplex::HULL]) continue;
+		for (int i = 0; i < NDim + 1; ++i) //should have better ending condition####
+		{
+			if (i == S.iPeak) continue;
+			double hash = _hash(S.V[i]);
+			if (peakSet.find(hash) == peakSet.end())
+			{
+				peaks.push_back(S.V[i]);
+				peakSet.insert(hash);
+			}
+		}
 	}
-	return _peaks;
+	return std::move(peaks);
 }
 
 void testHull()

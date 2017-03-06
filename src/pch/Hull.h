@@ -64,19 +64,15 @@ public:
 	
 	void printPeaks();
 
-	std::vector<PointRef>& getPeaks();
+	std::vector<PointRef> getPeaks();
 
 private:
 	hash_t _hash(Point& p);
 
 	hash_t _hash(PointRef p);
 
-	void _addPeak(PointRef p);
-
 private:
 	Triangulation_t     _hull;
-	PointRefVec         _peaks;
-	PointHashSet        _peakSet;
 	PointRef            _init[NDim + 2];
 	size_t              _size;
 };
