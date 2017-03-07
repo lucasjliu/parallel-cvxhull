@@ -17,6 +17,7 @@
 #include <chrono>
 #include <functional>
 #include <vector>
+#include <assert.h>
 
 #include "Exception.h"
 #include "Logger.h"
@@ -54,13 +55,13 @@ public:
 		~Exception() noexcept {}
 	};
 public:
-	explicit UnitTest(Func& func);
+	explicit UnitTest(Func&& func);
 	explicit UnitTest(Func func);
 
 	void run();
 
 	template <typename ...Args>
-	void addCase(ret_type& truth, Args&... args);
+	void addCase(ret_type&& truth, Args&&... args);
 
 	template <typename ...Args>
 	void addCase(const ret_type& truth, const Args&... args);
@@ -74,16 +75,51 @@ private:
 class UnitTestFactory
 {
 public:
-	template<typename Ret, typename Func>
+	/*template<typename Ret, typename Func>
 	static UnitTest<Func, Ret> create(Func& func)
 	{
 		return UnitTest<Func, Ret>(std::forward<Func>(func));
+	}*/
+
+	template<typename Ret, typename Func>
+	static UnitTest<Func, Ret> create(Func func)
+	{
+		return UnitTest<Func, Ret>(func);
 	}
 };
 
 template<typename Func, typename Ret>
+UnitTest<Func, Ret>::UnitTest(Func&& func) :_func(std::forward<Func>(func)) 
+{}
+template<typename Func, typename Ret>
+UnitTest<Func, Ret>::UnitTest(Func func) :_func(func) 
+{}
+
+template<typename Func, typename Ret>
+void UnitTest<Func, Ret>::run()
+{
+	assert(_tests.size() == _truths.size());
+	for (int i = 0; i < _tests.size(); ++i)
+	{
+		_timer.start();
+		ret_type result = _tests[i]();
+		int cost = _timer.stop();
+		if (!(result == _truths[i]) && _truths[i] != ret_type())
+		{
+			char err_msg[40] = {0};
+			sprintf(err_msg, "Case# %d Fails: %d ms", i, cost);
+			throw Exception(err_msg);
+		}
+		else
+		{
+			printf("Case# %d OK: %d ms\n", i, cost);
+		}
+	}
+}
+
+template<typename Func, typename Ret>
 template <typename ...Args>
-void UnitTest<Func, Ret>::addCase(ret_type& truth, Args&... args)
+void UnitTest<Func, Ret>::addCase(ret_type&& truth, Args&&... args)
 {
 	Test test = std::bind(_func, _timer, std::forward<Args>(args)...);
 	_tests.push_back(std::move(test));
