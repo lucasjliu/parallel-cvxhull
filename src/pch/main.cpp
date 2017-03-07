@@ -10,6 +10,7 @@
 #include "Hull.h"
 #include "UnitTest.h"
 #include "HullAlg.h"
+#include "ParallelSort.h"
 
 int main()
 {
@@ -17,4 +18,5 @@ int main()
 	//testTimer();
 	//testUnitTest();
 	testAlg();
+	testSort();
 }
