@@ -49,6 +49,35 @@ void Timer::resume()
 	}
 }
 
+template<typename Func, typename Ret>
+UnitTest<Func, Ret>::UnitTest(Func& func) :_func(std::forward<Func>(func)) 
+{}
+template<typename Func, typename Ret>
+UnitTest<Func, Ret>::UnitTest(Func func) :_func(func) 
+{}
+
+template<typename Func, typename Ret>
+void UnitTest<Func, Ret>::run()
+{
+	assert(_tests.size() == _truths.size());
+	for (int i = 0; i < _tests.size(); ++i)
+	{
+		_timer.start();
+		ret_type result = _tests[i]();
+		int cost = _timer.stop();
+		if (!(result == _truths[i]) && _truths[i] != ret_type())
+		{
+			char err_msg[40] = {0};
+			sprintf(err_msg, "Case# %d Fails: %d ms", i, cost);
+			throw Exception(err_msg);
+		}
+		else
+		{
+			printf("Case# %d OK: %d ms\n", i, cost);
+		}
+	}
+}
+
 void testTimer()
 {
 	Timer t1;
