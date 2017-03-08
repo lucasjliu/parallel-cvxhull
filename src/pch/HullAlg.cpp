@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include "HullAlg.h"
+#include "omp.h"
 
 PointRefVec HullAlg::getRefs(PointVec& vec)
 {
@@ -24,6 +25,9 @@ PointRefVec HullAlg::getRefs(PointVec& vec)
 
 void testAlg()
 {
+	omp_set_num_threads(2);
+	omp_set_dynamic(true);
+
 	auto getRefFromRefItr = [](PointRefVec::iterator itr){return *itr;};
 	Timer timer;
 
