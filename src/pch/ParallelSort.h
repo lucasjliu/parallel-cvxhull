@@ -17,20 +17,18 @@
 #include <type_traits>
 #include <algorithm>
 
+#include "omp.h"
 #include "Logger.h"
 #include "UnitTest.h"
-
-class MergeSort;
 
 class ParallelSort
 {
 public:
 	template <typename Itr>
-	static void mergesort(Itr beg, Itr end);
+	static void mergesort(Itr beg, Itr end, int thrNum);
 
 	template <typename Itr>
-	static void oddeven(Itr beg, Itr end);
-
+	static void oddeven(Itr beg, Itr end, int thrNum);
 };
 
 class MergeSort
@@ -88,7 +86,7 @@ void MergeSort::_parallel_recursive(Itr beg, Itr end,
 	typename std::vector<typename std::iterator_traits<Itr>::value_type>::iterator bufItr, 
 	int thrNum, Comp comp)
 {
-	//LOG_INFO << beg - beg << " " << end - beg << " " << thrNum;
+	LOG_INFO << omp_get_thread_num() << ": " << beg - beg << " " << end - beg << " " << thrNum << " " << omp_get_num_threads();
 
 	if (thrNum <= 0) return;
 
@@ -109,14 +107,14 @@ void MergeSort::_parallel_recursive(Itr beg, Itr end,
 	Itr mid = size / 2 + beg;
 
 	//if thread numbers over 1, sort in parallel
-	#pragma omp parallel sections
+	#pragma omp parallel sections num_threads(thrNum)
 	{
 		#pragma omp section
 		_parallel_recursive(beg, mid, bufItr, thrNum / 2, comp);
 		#pragma omp section
 		_parallel_recursive(mid, end, bufItr + (mid - beg), thrNum - thrNum / 2, comp);
 	}
-
+	
 	_merge(beg, mid, end, bufItr, comp);
 }
 
@@ -157,6 +155,12 @@ void MergeSort::_merge(Itr beg, Itr mid, Itr end,
 			(*itr++) = (*itr1++);
 		}
 	}
+}
+
+template <typename Itr>
+void ParallelSort::mergesort(Itr beg, Itr end, int thrNum)
+{
+	MergeSort::sort(beg, end, thrNum);
 }
 
 void testSort();

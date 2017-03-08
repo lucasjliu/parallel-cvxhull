@@ -18,18 +18,18 @@
 void testSort()
 {
 	const int size = 5e6;
-	const int ntests = 10;
+	const int ntests = 1;
 	std::vector<double> vecs[ntests], gts[ntests];
 	srand(1);
 
 	using ret_type = std::vector<double>;
-	auto paraSort = [](Timer& t, ret_type& v) {MergeSort::sort(v.begin(), v.end(), 2); return v;};
-	auto seqSort = [](Timer& t, ret_type& v) {MergeSort::sort(v.begin(), v.end(), 1); return v;};
+	auto paraSort = [](Timer& t, ret_type& v) {ParallelSort::mergesort(v.begin(), v.end(), 2); return v;};
+	auto seqSort = [](Timer& t, ret_type& v) {ParallelSort::mergesort(v.begin(), v.end(), 1); return v;};
 	auto paral = UnitTestFactory::create<ret_type>(paraSort);
 	auto seq = UnitTestFactory::create<ret_type>(seqSort);
 
-	//Timer timer;
-	//int t1, t2;
+	Timer timer;
+	int t1, t2;
 
 	for (int t = 0; t < ntests; ++t)
 	{
@@ -41,19 +41,19 @@ void testSort()
 
 		seq.addCase({}, gts[t]);
 
-		/*auto gt = gts[t];
+		auto gt = gts[t];
 		timer.start();
 		std::sort(gt.begin(), gt.end());
-		t1 = timer.stop();*/
+		t1 = timer.stop();
 
 		paral.addCase(gts[t], vecs[t]);
 
-		/*auto vec = vecs[t];
+		auto vec = vecs[t];
 		timer.start();
-		MergeSort::sort(vec.begin(), vec.end(), 1);
+		ParallelSort::mergesort(vec.begin(), vec.end(), 1);
 		t2 = timer.stop();
 		
-		LOG_INFO << "case " << t << ": " << t1 << " " << t2;*/
+		LOG_INFO << "case " << t << ": " << t1 << " " << t2;
 	}
 	
 	//seq.run();
