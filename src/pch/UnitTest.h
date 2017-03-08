@@ -113,6 +113,7 @@ void UnitTest<Func, Ret>::run()
 		else
 		{
 			printf("Case# %d OK: %d ms\n", i, cost);
+			fflush(stdout);
 		}
 	}
 }

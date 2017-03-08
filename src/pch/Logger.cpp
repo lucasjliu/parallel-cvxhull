@@ -58,7 +58,7 @@ void Logger::init(Level level, std::string file, int line)
 
 void Logger::finish()
 {
-    _stream << END;
+    _stream << END << std::flush;
 }
 
 Logger::~Logger()
