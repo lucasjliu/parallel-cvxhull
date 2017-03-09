@@ -6,6 +6,8 @@
 //
 
 #include "Logger.h"
+////
+#include "omp.h"
 
 std::string Logger::levelName[] =
 {
@@ -54,6 +56,8 @@ void Logger::init(Level level, std::string file, int line)
     if (level == L_DATA) return;
     _stream << "[" << Common::now2str("%H:%M:%S") << "][" << levelName[level]
     << "][" << file << ":" << line;
+    ////
+    _stream << "][" << omp_get_thread_num();
 }
 
 void Logger::finish()
