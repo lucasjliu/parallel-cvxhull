@@ -14,6 +14,9 @@
 
 #include "Hull.h"
 
+const int g_scale = 1e5;
+const Val_t g_rand_base = (Val_t)RAND_MAX / g_scale;
+
 PointVec::PointVec(int num)
 {
 	base_t::reserve(num);
@@ -25,8 +28,8 @@ PointVec::PointVec(int num)
 
 void PointVec::random()
 {
-	base_t::emplace_back(rand() / (val_t)RAND_MAX,
-						 rand() / (val_t)RAND_MAX);
+	base_t::emplace_back((val_t)rand() / g_rand_base,
+						 (val_t)rand() / g_rand_base);
 }
 
 void PointVec::initRand(long seed) 
@@ -129,7 +132,7 @@ void Hull::printPeaks()
 PointRefVec Hull::getPeaks()
 {
 	PointRefVec peaks;
-	PointHashSet peakSet;
+	PointRefHashSet peakSet;
 
 	for(auto& S : _hull.m_sMgr)
 	{
@@ -137,7 +140,8 @@ PointRefVec Hull::getPeaks()
 		for (int i = 0; i < NDim + 1; ++i) //should have better ending condition####
 		{
 			if (i == S.iPeak) continue;
-			double hash = _hash(S.V[i]);
+			//double hash = _hash(S.V[i]);
+			auto hash = S.V[i];
 			if (peakSet.find(hash) == peakSet.end())
 			{
 				peaks.push_back(S.V[i]);

@@ -21,7 +21,7 @@ using namespace mpblocks::clarkson93;
 
 #define MAX_NUM 1000
 
-typedef float Val_t;
+typedef double Val_t;
 #define NDim 2
 typedef ExampleTraits2<Val_t, NDim>     Traits;
 typedef Triangulation<Traits>           Triangulation_t;
@@ -50,6 +50,7 @@ public:
 	using hash_t = int64_t;
 	using Simplex = Triangulation_t::Simplex;
 	using PointHashSet = std::unordered_set<hash_t>;
+	using PointRefHashSet = std::unordered_set<PointRef>;
 
 public:
 	Hull(int n = NDim + 1);
