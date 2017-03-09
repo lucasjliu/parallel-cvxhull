@@ -24,11 +24,13 @@
 class ParallelSort
 {
 public:
-	template <typename Itr>
-	static void mergesort(Itr beg, Itr end, int thrNum);
+	template <typename Itr, 
+		typename Comp=std::less<typename std::iterator_traits<Itr>::value_type> >
+	static void mergesort(Itr beg, Itr end, int thrNum = 1, Comp comp = Comp());
 
-	template <typename Itr>
-	static void oddeven(Itr beg, Itr end, int thrNum);
+	template <typename Itr, 
+		typename Comp=std::less<typename std::iterator_traits<Itr>::value_type> >
+	static void oddeven(Itr beg, Itr end, int thrNum = 1, Comp comp = Comp()) {}
 };
 
 class MergeSort
@@ -107,7 +109,7 @@ void MergeSort::_parallel_recursive(Itr beg, Itr end,
 	Itr mid = size / 2 + beg;
 
 	//if thread numbers over 1, sort in parallel
-	#pragma omp parallel sections num_threads(thrNum)
+	#pragma omp parallel sections num_threads(thrNum) ////why have to set####
 	{
 		#pragma omp section
 		_parallel_recursive(beg, mid, bufItr, thrNum / 2, comp);
@@ -125,18 +127,18 @@ void MergeSort::_sequential(Itr beg, Itr end, Comp comp)
 }
 
 template <typename Itr, typename Comp>
-void MergeSort::_merge(Itr beg, Itr mid, Itr end, 
+void MergeSort::_merge(Itr beg, Itr mid, Itr end,
 	typename std::vector<typename std::iterator_traits<Itr>::value_type>::iterator bufItr, 
 	Comp comp)
 {
 	using BufItr = decltype(bufItr);
 
-	const Itr beg0 = beg, end0 = mid, beg1 = mid;
+	const Itr beg0 = beg, end0 = mid, beg1 = mid, end1 = end;
 	const BufItr bufBeg = bufItr;
 
-	for (Itr itr = beg0; itr != end0; itr++, bufItr++)
+	for (Itr itr0 = beg0; itr0 != end0; itr0++, bufItr++)
 	{//copy first half to buf, so that can directly write to original space
-		(*bufItr) = (*itr);
+		(*bufItr) = (*itr0);
 	}
 
 	const BufItr bufEnd = bufItr;
@@ -145,8 +147,8 @@ void MergeSort::_merge(Itr beg, Itr mid, Itr end,
 	Itr itr = beg0, itr0 = bufBeg, itr1 = beg1;
 
 	while (itr0 != bufEnd)
-	{//if itr1 == end1, remaining order is correct, no need to copy
-		if (itr1 == beg1 || comp((*itr0), (*itr1)) )
+	{//if itr0 == bufEnd, remaining order is correct, no need to copy
+		if (itr1 == end1 || comp((*itr0), (*itr1)) )
 		{
 			(*itr++) = (*itr0++);
 		}
@@ -157,10 +159,10 @@ void MergeSort::_merge(Itr beg, Itr mid, Itr end,
 	}
 }
 
-template <typename Itr>
-void ParallelSort::mergesort(Itr beg, Itr end, int thrNum)
+template <typename Itr, typename Comp>
+void ParallelSort::mergesort(Itr beg, Itr end, int thrNum, Comp comp)
 {
-	MergeSort::sort(beg, end, thrNum);
+	MergeSort::sort(beg, end, thrNum, comp);
 }
 
 void testSort();
