@@ -19,6 +19,7 @@
 
 #include "Hull.h"
 #include "UnitTest.h"
+#include "Marginality.h"
 
 const int MIN_SIZE = NDim + 1;
 const int THR_NUM = 2;
@@ -40,6 +41,9 @@ public:
 
 	template <typename Itr, typename GetRef>
 	static int manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef);
+
+	template <typename Itr, typename GetRef>
+	static int manualParalWithPresort(Timer& timer, Itr beg, Itr end, GetRef getRef);
 
 	template <typename Itr, typename GetRef>
 	static int specuParal(Timer& timer, Itr beg, Itr end, GetRef getRef);
@@ -70,19 +74,20 @@ public:
 template <typename Itr, typename GetRef>
 PointRefVec HullAlg::_sequential(Itr beg, Itr end, GetRef getRef, Hull& hull)
 {
-	////LOG_INFO << "Seq: " << end - beg << " from " << beg - beg << " to " << end - beg;
+	////
+	LOG_INFO << "Seq: " << end - beg << " from " << beg - beg << " to " << end - beg;
 	for (Itr itr = beg; itr != end; ++itr)
 	{
 		hull.insert(getRef(itr));
 	}
 
 	////
-	/*auto peaks = hull.getPeaks();
+	auto peaks = hull.getPeaks();
 	for (auto& p : peaks)
 	{
 		LOG_INFO << "Hull: " << (*p)[0] << " " << (*p)[1];
 	}
-	hull.printPeaks();*/
+	/*hull.printPeaks();*/
 
 	return std::move(hull.getPeaks());
 }
@@ -91,7 +96,7 @@ template <typename Itr, typename GetRef>
 std::vector<PointRefVec> HullAlg::_parallel(Itr beg, Itr end, GetRef getRef, std::vector<Hull>& hulls)
 {
 	const int size = end - beg;
-	int thrNum = THR_NUM;
+	int thrNum = THR_NUM;//####TODO
 	int len = ceil(size / thrNum);
 	
 	while (len <= MIN_SIZE && thrNum > 1)
@@ -112,7 +117,7 @@ std::vector<PointRefVec> HullAlg::_parallel(Itr beg, Itr end, GetRef getRef, std
 
 	omp_set_num_threads(thrNum);
 
-	#pragma omp parallel shared(results, len, beg, end, getRef, hulls)
+	#pragma omp parallel shared(results, len, beg, end, getRef, hulls) num_threads(thrNum) //num_threads must be set
 	{
 		int tid = omp_get_thread_num();
 		Itr first = beg + len * tid, 
@@ -190,7 +195,7 @@ int HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef)
 {
 	std::vector<Hull> hulls;
 	auto results = _parallel(beg, end, getRef, hulls);
-	int currCnt = _count(results), prevCnt = 0;
+	int currCnt = _count(results), prevCnt = end - beg;
 
 	if (results.size() <= 1) return currCnt;
 
@@ -215,6 +220,18 @@ int HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef)
 	//timer.resume();//####
 	nextStep = _flatten(results, currCnt);
 	return sequential(timer, nextStep.begin(), nextStep.end(), getRefFromRefItr);
+}
+
+template <typename Itr, typename GetRef>
+int HullAlg::manualParalWithPresort(Timer& timer, Itr beg, Itr end, GetRef getRef)
+{
+	timer.pause();
+	Timer t;
+	t.start();
+	auto sortedList = Marginality::sort(beg, end, getRef);
+	LOG_INFO << "sort: " << t.stop();
+	timer.resume();
+	return manualParal(timer, sortedList.begin(), sortedList.end(), getRef);//####getRef??
 }
 
 void testAlg();
