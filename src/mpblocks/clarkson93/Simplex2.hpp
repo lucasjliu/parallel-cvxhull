@@ -236,16 +236,22 @@ void SimplexOps<Traits>::computeBase( Simplex& S, Deref& deref )
     typedef Eigen::Matrix<Scalar,NDim,1>    Vector;
 
     Matrix A;
-    Vector b;
+    //Vector b;
 
     unsigned int j=0;
     for(unsigned int i=0; i < NDim+1; i++)
         if( i != S.iPeak )
             A.row(j++) = deref.point(S.V[i]);
-    b.setConstant(1);
+    /*b.setConstant(1);
 
     // solve for the normal
     S.n = A.fullPivLu().solve(b);
+    S.n.normalize();*/
+
+    //lucas 03/2017
+    auto dx = A(0, 0) - A(1, 0);
+    auto dy = A(0, 1) - A(1, 1);
+    S.n[0] = dy, S.n[1] = -dx;
     S.n.normalize();
 
     // and then find the value of 'c' (hyperplane offset)
