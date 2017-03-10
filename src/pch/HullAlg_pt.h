@@ -27,8 +27,6 @@ const int THR_NUM = 2;
 class HullAlg
 {
 public:
-	using ret_type = PointVec;
-public:
 	//
 	// @brief: public interface of algorithm
 	// @param: beg, end: specify input points, should be RandomAccessItrator
@@ -36,19 +34,19 @@ public:
 	// @return: number of anti-origin points in resulting polygon
 	//
 	template <typename Itr, typename GetRef>
-	static ret_type sequential(Timer& timer, Itr beg, Itr end, GetRef getRef);
+	static int sequential(Timer& timer, Itr beg, Itr end, GetRef getRef);
 
 	template <typename Itr, typename GetRef>
-	static ret_type manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, int prevCnt);
+	static int manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, int prevCnt);
 
 	template <typename Itr, typename GetRef>
-	static ret_type manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef);
+	static int manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef);
 
 	template <typename Itr, typename GetRef>
-	static ret_type manualParalWithPresort(Timer& timer, Itr beg, Itr end, GetRef getRef);
+	static int manualParalWithPresort(Timer& timer, Itr beg, Itr end, GetRef getRef);
 
 	template <typename Itr, typename GetRef>
-	static ret_type specuParal(Timer& timer, Itr beg, Itr end, GetRef getRef);
+	static int specuParal(Timer& timer, Itr beg, Itr end, GetRef getRef);
 
 	static PointRefVec getRefs(const PointVec& vec);
 	static PointVec getPts(const PointRefVec& vec);
@@ -145,19 +143,17 @@ template <typename Itr, typename GetRef>
 PointVec HullAlg::_sequential(Itr beg, Itr end, GetRef getRef, Hull& hull)
 {
 	////
-	//LOG_INFO << "Seq: " << end - beg << " from " << beg - beg << " to " << end - beg;
+	LOG_INFO << "Seq: " << end - beg << " from " << beg - beg << " to " << end - beg;
 	for (Itr itr = beg; itr != end; ++itr)
 	{
-		//std::cout << "(" << (*getRef(itr))[0] << "," << (*getRef(itr))[1] << ")";
 		hull.insert(getRef(itr));
 	}
-	//std::cout << std::endl;
 
 	////
 	auto peaks = hull.getPeaks();
 	for (auto& p : peaks)
 	{
-		//LOG_INFO << "Hull: " << (*p)[0] << " " << (*p)[1];
+		LOG_INFO << "Hull: " << (*p)[0] << " " << (*p)[1];
 	}
 	//hull.printPeaks();
 
@@ -231,24 +227,23 @@ Vec HullAlg::_flatten(const std::vector<Vec>& vecs)
 }
 
 template <typename Itr, typename GetRef>
-HullAlg::ret_type HullAlg::sequential(Timer& timer, Itr beg, Itr end, GetRef getRef)
+int HullAlg::sequential(Timer& timer, Itr beg, Itr end, GetRef getRef)
 {
 	int size = end - beg;
 	//timer.pause();//####
 	Hull hull(size);
 	//timer.resume();//####
-	return _sequential(beg, end, getRef, hull);
+	return _sequential(beg, end, getRef, hull).size();
 }
 
 template <typename Itr, typename GetRef>
-HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, int prevCnt)
+int HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, int prevCnt)
 {
 	std::vector<Hull> hulls;
 	auto results = _parallel(beg, end, getRef, hulls);
 	int currCnt = _count(results);
 
-	if (results.empty()) return {};
-	else if (results.size() == 1) return std::move(results.front());
+	if (results.size() <= 1) return currCnt;
 
 	//timer.pause();//####
 	auto nextStep = _flatten(results, currCnt);
@@ -264,14 +259,13 @@ HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef ge
 }
 
 template <typename Itr, typename GetRef>
-HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef)
+int HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef)
 {
 	std::vector<Hull> hulls;
 	auto results = _parallel(beg, end, getRef, hulls);
 	int currCnt = _count(results), prevCnt = end - beg;
 
-	if (results.empty()) return {};
-	else if (results.size() == 1) return std::move(results.front());
+	if (results.size() <= 1) return currCnt;
 
 	//auto getRefFromRefItr = [](PointRefVec::iterator itr){return *itr;};
 	auto getRefFromPtItr = [](PointVec::iterator itr){return &(*itr);};
@@ -297,20 +291,17 @@ HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef ge
 }
 
 template <typename Itr, typename GetRef>
-HullAlg::ret_type HullAlg::manualParalWithPresort(Timer& timer, Itr beg, Itr end, GetRef getRef)
+int HullAlg::manualParalWithPresort(Timer& timer, Itr beg, Itr end, GetRef getRef)
 {
 	timer.pause();
 	Timer t;
 	t.start();
 	auto sortedList = Marginality::sort(beg, end, getRef);
-	////
-	//LOG_INFO << "sort: " << t.stop();
+	LOG_INFO << "sort: " << t.stop();
 	timer.resume();
 	return manualParal(timer, sortedList.begin(), sortedList.end(), getRef);//####getRef??
 }
 
 void testAlg();
-
-void testAlg(int seed, int size);
 
 #endif

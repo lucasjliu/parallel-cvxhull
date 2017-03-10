@@ -10,13 +10,23 @@
 #include "Hull.h"
 #include "UnitTest.h"
 #include "HullAlg.h"
-#include "ParallelSort.h"
 
-int main()
+int main(int argc, char** argv)
 {
-	//testHull();
-	//testTimer();
-	//testUnitTest();
-	testAlg();
-	testSort();
+	if (argc == 3)
+	{
+		int seed = atoi(argv[1]);
+		int size = atoi(argv[2]);
+		testAlg(seed, size);
+	}
+	else
+	{
+		//testHull();
+		//testTimer();
+		//testUnitTest();
+		testAlg();
+		//testSort();
+		//testMarginalitySort();
+	}
+	
 }

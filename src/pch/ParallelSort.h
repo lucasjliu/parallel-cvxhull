@@ -88,7 +88,8 @@ void MergeSort::_parallel_recursive(Itr beg, Itr end,
 	typename std::vector<typename std::iterator_traits<Itr>::value_type>::iterator bufItr, 
 	int thrNum, Comp comp)
 {
-	LOG_INFO << omp_get_thread_num() << ": " << beg - beg << " " << end - beg << " " << thrNum << " " << omp_get_num_threads();
+	////
+	//LOG_INFO << omp_get_thread_num() << ": " << beg - beg << " " << end - beg << " " << thrNum << " " << omp_get_num_threads();
 
 	if (thrNum <= 0) return;
 
