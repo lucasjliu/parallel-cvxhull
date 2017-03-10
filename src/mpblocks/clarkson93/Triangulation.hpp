@@ -189,7 +189,7 @@ typename Traits::Simplex*
     m_xv_queue .clear();
     m_xv_walked.clear();
 
-    // if the origin simplex is not visible then start at the neighbor
+    /*// if the origin simplex is not visible then start at the neighbor
     // across his base, which must be x-visible
     {
         Simplex& S = m_deref.simplex(Sref);
@@ -217,7 +217,30 @@ typename Traits::Simplex*
         // if the seed we've been given is both x-visible and infinite
         // then there is no need for a walk
         foundVisibleHull = isInfinite( S, m_antiOrigin );
+    }*/
+
+
+    {
+        Simplex& S = m_deref.simplex(Sref);
+        auto Nref = neighborAcross(S,peak(S));
+        Simplex& N = m_deref.simplex(Nref);
+
+        if( isVisible(N,x) )
+            Sref = Nref;
     }
+
+    Simplex& S = m_deref.simplex(Sref);
+
+    // if the seed we've been given is both x-visible and infinite
+    // then there is no need for a walk
+    bool foundVisibleHull = isInfinite( S, m_antiOrigin );
+
+    Scalar d = foundVisibleHull ? 0 : ( x - m_deref.point(peak(S)) ).squaredNorm();
+
+    m_xv_queue.push( PQ_Key( d, Sref ) );
+    m_xv_walked.push_back( Sref );
+
+    setMember( S, simplex::XVISIBLE_WALK   ) = true;
 
     // starting at the given simplex, walk in the direction of x until
     // we find an x-visible infinite simplex (i.e. hull facet)
@@ -240,7 +263,7 @@ typename Traits::Simplex*
 
             // if the neighbor is x-visible but has not already been queued or
             // expanded, then add it to the queue
-            if( isVisible( N, x ) && !isMember( N, simplex::XVISIBLE_WALK ) )
+            if( !isMember( N, simplex::XVISIBLE_WALK ) && isVisible( N, x ) )
             {
                 // if the base facet is x-visible and the simplex is also
                 // infinite then we have found our x-visible hull facet
