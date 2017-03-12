@@ -11,7 +11,6 @@
 #include <stdio.h>
 
 #include "Marginality.h"
-#include "HullAlg.h"
 
 const int Scale = 1e3;
 
@@ -38,24 +37,4 @@ void Marginality::accumulate(val_t& v1, val_t v2)
 void Marginality::initialize(val_t& v)
 {
     v = 1;
-}
-
-void testMarginalitySort()
-{
-    PointVec test0;
-	test0.emplace_back(0, 0);
-	test0.emplace_back(0.2, 0);
-	test0.emplace_back(0, 0.2);
-	test0.emplace_back(0.15, 0.1);
-	test0.emplace_back(0.1, 0.15);
-	test0.emplace_back(0.2, 0.2);
-	test0.emplace_back(0.1, 0.05);
-	test0.emplace_back(0.05, 0.1);
-
-    auto refs0 = HullAlg::getRefs(test0);
-	auto getRefFromRefItr = [](PointRefVec::iterator itr){return *itr;};
-    auto getRefFromPtItr = [](PointVec::iterator itr){return &(*itr);};
-
-    auto res_refs = Marginality::sort(refs0.begin(), refs0.end(), getRefFromRefItr);
-    auto res = Marginality::sort(test0.begin(), test0.end(), getRefFromPtItr);
 }

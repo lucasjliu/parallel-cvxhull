@@ -18,7 +18,7 @@
 #include <omp.h>
 
 #include "Points.h" //NDim
-#include "ParallelSort.h"
+#include "ParalSort.h"
 
 class Marginality
 {
@@ -66,7 +66,7 @@ R Marginality::sort(Itr beg, Itr end, GetRef getRef)
 
 		Timer t;
 		t.start();
-		ParallelSort::mergesort(pos.begin(), pos.end(), 2);//##TODO: thrNum
+		ParalSort::mergesort(pos.begin(), pos.end(), 2);//##TODO: thrNum
 		//LOG_INFO << "sort: " << t.stop();
 
 		//#pragma omp parallel for schedule(static) shared(ranks, pos, d)
@@ -97,7 +97,7 @@ R Marginality::sort(Itr beg, Itr end, GetRef getRef)
 
 	Timer t;
 	t.start();
-	ParallelSort::mergesort(vals.begin(), vals.end(), 2);//####TODO: thrNum
+	ParalSort::mergesort(vals.begin(), vals.end(), 2);//####TODO: thrNum
 	//LOG_INFO << "sort: " << t.stop();
 	
 	R res;
@@ -111,7 +111,5 @@ R Marginality::sort(Itr beg, Itr end, GetRef getRef)
 	}
 	return res;
 }
-
-void testMarginalitySort();
 
 #endif

@@ -7,11 +7,7 @@
 //  03/04/2017
 //
 
-#include <unistd.h>
-#include <cstdio>
-#include <iostream>
-#include <cassert>
-#include <utility>
+#include <chrono>
 
 #include "UnitTest.h"
 
@@ -47,49 +43,4 @@ void Timer::resume()
 		_paused = false;
 		_beg += clock_t::now() - _pause;
 	}
-}
-
-void testTimer()
-{
-	Timer t1;
-	t1.start();
-	assert(t1.stop() == 0);
-
-	t1.start();
-	usleep(1000);
-	assert(t1.stop() == 1);
-
-	t1.start();
-	usleep(1000);
-	t1.pause();
-	usleep(5000);
-	t1.resume();
-	usleep(1000);
-	assert(t1.stop() == 2);
-}
-
-void testUnitTest()
-{
-	auto null_task0 = [](Timer& t, int a){return a;};
-	auto t0 = UnitTestFactory::create<int>(null_task0);
-	t0.addCase(1, 1);
-	t0.addCase(2, 2);
-	t0.addCase(1, 0);
-	__TRY__
-	t0.run();
-	__CATCH__(decltype(t0)::Exception& e)
-	std::cout << e.what() << std::endl;
-	__END__
-
-	auto null_task1 = [](Timer& t, std::vector<int> v){usleep(1000); return v;};
-	auto t1 = UnitTestFactory::create<std::vector<int>>(null_task1);
-	t1.addCase({}, std::vector<int>({}));
-	t1.addCase({1,2,3}, std::vector<int>({1,2,3}));
-	t1.addCase({1,2,4}, std::vector<int>({1,2,3}));
-	t1.addCase({}, std::vector<int>({}));
-	__TRY__
-	t1.run();
-	__CATCH__(decltype(t1)::Exception& e)
-	std::cout << e.what() << std::endl;
-	__END__
 }

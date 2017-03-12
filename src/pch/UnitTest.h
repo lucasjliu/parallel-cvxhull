@@ -39,8 +39,6 @@ private:
 	bool _paused;
 };
 
-void testTimer();
-
 template<typename Func, typename Ret>
 class UnitTest
 {
@@ -135,7 +133,5 @@ void UnitTest<Func, Ret>::addCase(const ret_type& truth, const Args&... args)
 	_tests.push_back(std::move(test));
 	_truths.push_back(truth);
 }
-
-void testUnitTest();
 
 #endif
