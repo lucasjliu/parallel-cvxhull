@@ -110,7 +110,7 @@ void MergeSort::_parallel_recursive(Itr beg, Itr end,
 	Itr mid = size / 2 + beg;
 
 	//if thread numbers over 1, sort in parallel
-	#pragma omp parallel sections num_threads(thrNum) ////why have to set####
+	#pragma omp parallel sections num_threads(thrNum)
 	{
 		#pragma omp section
 		_parallel_recursive(beg, mid, bufItr, thrNum / 2, comp);
