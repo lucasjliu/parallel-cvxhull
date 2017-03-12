@@ -36,13 +36,13 @@ public:
 	// @return: number of anti-origin points in resulting polygon
 	//
 	template <typename Itr, typename GetRef>
-	static ret_type sequential(Timer& timer, Itr beg, Itr end, GetRef getRef);
+	static ret_type sequential(Timer& timer, Itr beg, Itr end, GetRef getRef, bool bSort = false);
 
 	template <typename Itr, typename GetRef>
-	static ret_type manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, int prevCnt);
+	static ret_type manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, int prevCnt, bool bSort = false);
 
 	template <typename Itr, typename GetRef>
-	static ret_type manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef);
+	static ret_type manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, bool bSort = false);
 
 	template <typename Itr, typename GetRef>
 	static ret_type manualParalWithPresort(Timer& timer, Itr beg, Itr end, GetRef getRef);
@@ -52,11 +52,11 @@ public:
 
 	static PointRefVec getRefs(const PointVec& vec);
 	static PointVec getPts(const PointRefVec& vec);
-//private:
+private:
 	//
 	// @brief: internal implementation of parallelization
 	// @param: hull, hulls: for hull structures return
-	// @return: PointRef vector of anti-origin points
+	// @return: Point vector of hull points
 	//
 	/*template <typename Itr, typename GetRef>
 	static PointRefVec _sequential(Itr beg, Itr end, GetRef getRef, Hull& hull);
@@ -65,10 +65,10 @@ public:
 	static std::vector<PointRefVec> _parallel(Itr beg, Itr end, GetRef getRef, std::vector<Hull>& hulls);*/
 
 	template <typename Itr, typename GetRef>
-	static PointVec _sequential(Itr beg, Itr end, GetRef getRef, Hull& hull);
+	static PointVec _sequential(Itr beg, Itr end, GetRef getRef, Hull& hull, bool bSort);
 
 	template <typename Itr, typename GetRef>
-	static std::vector<PointVec> _parallel(Itr beg, Itr end, GetRef getRef, std::vector<Hull>& hulls);
+	static std::vector<PointVec> _parallel(Itr beg, Itr end, GetRef getRef, std::vector<Hull>& hulls, bool bSort);
 
 	template <typename Vec>
 	static int _count(const std::vector<Vec>& vecs);
@@ -80,78 +80,37 @@ public:
 	static Vec _flatten(const std::vector<Vec>& vecs);
 };
 
-/*
 template <typename Itr, typename GetRef>
-PointRefVec HullAlg::_sequential(Itr beg, Itr end, GetRef getRef, Hull& hull)
-{
-	////
-	LOG_INFO << "Seq: " << end - beg << " from " << beg - beg << " to " << end - beg;
-	for (Itr itr = beg; itr != end; ++itr)
-	{
-		hull.insert(getRef(itr));
-	}
-
-	////
-	auto peaks = hull.getPeaks();
-	for (auto& p : peaks)
-	{
-		LOG_INFO << "Hull: " << (*p)[0] << " " << (*p)[1];
-	}
-	hull.printPeaks();
-
-	return std::move(hull.getPeaks());
-}
-
-template <typename Itr, typename GetRef>
-std::vector<PointRefVec> HullAlg::_parallel(Itr beg, Itr end, GetRef getRef, std::vector<Hull>& hulls)
-{
-	const int size = end - beg;
-	int thrNum = THR_NUM;//####TODO
-	int len = ceil(size / thrNum);
-	
-	while (len <= MIN_SIZE && thrNum > 1)
-	{
-		thrNum /= 2;
-		len = ceil(size / thrNum);
-	}
-
-	////LOG_INFO << thrNum << " " << len;
-
-	hulls.reserve(thrNum);
-	for (int i = 0; i < thrNum; ++i)
-	{
-		hulls.emplace_back(len);
-	}
-
-	std::vector<PointRefVec> results(thrNum);
-
-	omp_set_num_threads(thrNum);
-
-	#pragma omp parallel shared(results, len, beg, end, getRef, hulls) num_threads(thrNum) //num_threads must be set
-	{
-		int tid = omp_get_thread_num();
-		Itr first = beg + len * tid, 
-			last = (tid == thrNum - 1 ? end : first + len);
-		////LOG_INFO << tid << " " << last - first << " from " << first - beg << " to " << last - beg;
-		PointRefVec result = _sequential(first, last, getRef, hulls[tid]);
-		results[tid] = std::move(result);
-	}
-
-	return std::move(results);
-}
-*/
-
-template <typename Itr, typename GetRef>
-PointVec HullAlg::_sequential(Itr beg, Itr end, GetRef getRef, Hull& hull)
+PointVec HullAlg::_sequential(Itr beg, Itr end, GetRef getRef, Hull& hull, bool bSort)
 {
 	////
 	//LOG_INFO << "Seq: " << end - beg << " from " << beg - beg << " to " << end - beg;
-	for (Itr itr = beg; itr != end; ++itr)
+
+	std::vector<Point> sortedList;
+
+	if (bSort)
 	{
-		//std::cout << "(" << (*getRef(itr))[0] << "," << (*getRef(itr))[1] << ")";
-		hull.insert(getRef(itr));
+		Timer t;
+		t.start();
+		sortedList = Marginality::sort(beg, end, getRef);
+		//####TODO: getRef
+		auto getSortedRef = [](std::vector<Point>::iterator itr){return &(*itr);};
+		////
+		//LOG_INFO << "sort: " << t.stop();
+		for (Point& p: sortedList)
+		{
+			//LOG_INFO << "(" << p[0] << "," << p[1] << ")";
+			hull.insert(&p);
+		}
 	}
-	//std::cout << std::endl;
+	else
+	{
+		for (Itr itr = beg; itr != end; ++itr)
+		{
+			//LOG_INFO << "(" << (*getRef(itr))[0] << "," << (*getRef(itr))[1] << ")";
+			hull.insert(getRef(itr));
+		}
+	}
 
 	////
 	auto peaks = hull.getPeaks();
@@ -159,13 +118,12 @@ PointVec HullAlg::_sequential(Itr beg, Itr end, GetRef getRef, Hull& hull)
 	{
 		//LOG_INFO << "Hull: " << (*p)[0] << " " << (*p)[1];
 	}
-	//hull.printPeaks();
 
-	return std::move(getPts(hull.getPeaks()));
+	return getPts(hull.getPeaks());
 }
 
 template <typename Itr, typename GetRef>
-std::vector<PointVec> HullAlg::_parallel(Itr beg, Itr end, GetRef getRef, std::vector<Hull>& hulls)
+std::vector<PointVec> HullAlg::_parallel(Itr beg, Itr end, GetRef getRef, std::vector<Hull>& hulls, bool bSort)
 {
 	const int size = end - beg;
 	int thrNum = THR_NUM;//####TODO
@@ -176,8 +134,6 @@ std::vector<PointVec> HullAlg::_parallel(Itr beg, Itr end, GetRef getRef, std::v
 		thrNum /= 2;
 		len = ceil(size / thrNum);
 	}
-
-	////LOG_INFO << thrNum << " " << len;
 
 	hulls.reserve(thrNum);
 	for (int i = 0; i < thrNum; ++i)
@@ -187,15 +143,13 @@ std::vector<PointVec> HullAlg::_parallel(Itr beg, Itr end, GetRef getRef, std::v
 
 	std::vector<PointVec> results(thrNum);
 
-	omp_set_num_threads(thrNum);
-
 	#pragma omp parallel shared(results, len, beg, end, getRef, hulls) num_threads(thrNum) //num_threads must be set
 	{
 		int tid = omp_get_thread_num();
 		Itr first = beg + len * tid, 
 			last = (tid == thrNum - 1 ? end : first + len);
-		////LOG_INFO << tid << " " << last - first << " from " << first - beg << " to " << last - beg;
-		auto result = _sequential(first, last, getRef, hulls[tid]);
+			
+		auto result = _sequential(first, last, getRef, hulls[tid], bSort);
 		results[tid] = std::move(result);
 	}
 
@@ -216,11 +170,11 @@ int HullAlg::_count(const std::vector<Vec>& vecs)
 template <typename Vec>
 Vec HullAlg::_flatten(const std::vector<Vec>& vecs, int count)
 {
-	Vec res(count);
-	int cnt = 0;
+	Vec res;
+	res.reserve(count);
 	for (auto& vec: vecs)
 		for (auto& elem: vec)
-			res[cnt++] = elem;
+			res.push_back(elem);
 	return res;
 }
 
@@ -231,20 +185,18 @@ Vec HullAlg::_flatten(const std::vector<Vec>& vecs)
 }
 
 template <typename Itr, typename GetRef>
-HullAlg::ret_type HullAlg::sequential(Timer& timer, Itr beg, Itr end, GetRef getRef)
+HullAlg::ret_type HullAlg::sequential(Timer& timer, Itr beg, Itr end, GetRef getRef, bool bSort)
 {
 	int size = end - beg;
-	//timer.pause();//####
 	Hull hull(size);
-	//timer.resume();//####
-	return _sequential(beg, end, getRef, hull);
+	return _sequential(beg, end, getRef, hull, bSort);
 }
 
 template <typename Itr, typename GetRef>
-HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, int prevCnt)
+HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, int prevCnt, bool bSort)
 {
 	std::vector<Hull> hulls;
-	auto results = _parallel(beg, end, getRef, hulls);
+	auto results = _parallel(beg, end, getRef, hulls, bSort);
 	int currCnt = _count(results);
 
 	if (results.empty()) return {};
@@ -259,15 +211,15 @@ HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef ge
 	//timer.resume();//####
 
 	return (currCnt == prevCnt) ? 
-		sequential(timer, nextStep.begin(), nextStep.end(), getRefFromPtItr) :
-		manualParal(timer, nextStep.begin(), nextStep.end(), getRefFromPtItr, currCnt);
+		sequential(timer, nextStep.begin(), nextStep.end(), getRefFromPtItr, bSort) :
+		manualParal(timer, nextStep.begin(), nextStep.end(), getRefFromPtItr, currCnt, bSort);
 }
 
 template <typename Itr, typename GetRef>
-HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef)
+HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef getRef, bool bSort)
 {
 	std::vector<Hull> hulls;
-	auto results = _parallel(beg, end, getRef, hulls);
+	auto results = _parallel(beg, end, getRef, hulls, bSort);
 	int currCnt = _count(results), prevCnt = end - beg;
 
 	if (results.empty()) return {};
@@ -285,32 +237,24 @@ HullAlg::ret_type HullAlg::manualParal(Timer& timer, Itr beg, Itr end, GetRef ge
 		//timer.resume();//####
 
 		std::vector<Hull> hulls;
-		results = _parallel(nextStep.begin(), nextStep.end(), getRefFromPtItr, hulls);
+		results = _parallel(nextStep.begin(), nextStep.end(), getRefFromPtItr, hulls, bSort);
 		currCnt = _count(results);
 
-		if (results.size() <= 1) return currCnt;
+		if (results.empty()) return {};
+		else if (results.size() == 1) return std::move(results.front());
 		//timer.pause();//####
 	}
 	//timer.resume();//####
 	auto nextStep = _flatten(results, currCnt);
-	return sequential(timer, nextStep.begin(), nextStep.end(), getRefFromPtItr);
+	return sequential(timer, nextStep.begin(), nextStep.end(), getRefFromPtItr, bSort);
 }
 
 template <typename Itr, typename GetRef>
 HullAlg::ret_type HullAlg::manualParalWithPresort(Timer& timer, Itr beg, Itr end, GetRef getRef)
 {
-	timer.pause();
-	Timer t;
-	t.start();
-	auto sortedList = Marginality::sort(beg, end, getRef);
-	////
-	//LOG_INFO << "sort: " << t.stop();
-	timer.resume();
-	return manualParal(timer, sortedList.begin(), sortedList.end(), getRef);//####getRef??
+	return manualParal(timer, beg, end, getRef, true);
 }
 
-void testAlg();
-
-void testAlg(int seed, int size);
+void testAlg(int seed, int size, int loop = 1000);
 
 #endif

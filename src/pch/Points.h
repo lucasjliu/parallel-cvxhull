@@ -45,7 +45,11 @@ public:
 
 	bool operator== (const PointVec& pv) const;
 
+	bool operator!= (const PointVec& pv) const;
+
 	double jaccard (const PointVec& pv) const;
+
+    static val_t rand();
 };
 
 typedef std::size_t hash_t;
@@ -56,7 +60,7 @@ namespace std
 {
     template <> struct hash<Point>
     {
-        hash_t operator()(Point const& p) const
+        hash_t operator()(const Point & p) const
         {
             return std::hash<Val_t>{}(p[0]) ^
                 (std::hash<Val_t>{}(p[1]) << (sizeof(hash_t) / 2 * 8));

@@ -14,7 +14,7 @@
 
 #include "Hull.h"
 
-Hull::Hull(int n) :_size(0)
+Hull::Hull(int n) :_initialized(false)
 {
 	_hull.m_antiOrigin = 0;
 	_hull.m_sMgr.reserve((NDim + 1) * n);
@@ -22,20 +22,18 @@ Hull::Hull(int n) :_size(0)
 
 bool Hull::insert(PointRef p)
 {
-	if (_size < 3)
-	{
-		_origin[_size] = p;
-	}
-
-	_size++;
-	
 	bool isPeak = true;
 
-	if (_size == 3)
+	if (!_initialized)
 	{
-		_hull.init(_origin, _origin + 3, [](PointRef* pRef){return *pRef;});
+		if (_origin.insert(p))
+		{
+			_hull.init(_origin.begin(), _origin.end(), 
+				[](OriginSimplex::iterator itr){return *itr;});
+			_initialized = true;
+		}
 	}
-	else if (_size > 3)
+	else
 	{
 		isPeak = _hull.insert(p);
 	}
@@ -67,50 +65,70 @@ void Hull::clear()
 	_hull.clear();
 }
 
-#include <stdio.h>
-
-void Hull::printPeaks()
-{
-	for( Simplex& S : _hull.m_sMgr )
-	{
-		if( !S.sets[ clarkson93::simplex::HULL] )
-			continue;
-		
-		Point* peak = S.V[S.iPeak];
-		std::vector<Point*> p;
-		std::copy_if( S.V, S.V+3,
-						std::back_inserter(p),
-						[peak](Point* v){ return v != peak; } );
-		
-		Point     p1 = *(p[0]);
-		Point     p2 = *(p[1]);
-		
-		printf("(%f, %f) -> (%f, %f)\n",
-				p1[0], p1[1], p2[0], p2[1]);
-		
-		//ectx.move_to(p1);
-		//ectx.line_to(p2);
-	}
-}
-
 PointRefVec Hull::getPeaks()
 {
 	PointRefVec peaks;
-	PointRefHashSet peakSet;
+	PointHashSet peakSet;
 
-	for(auto& S : _hull.m_sMgr)
+	if (_initialized)
 	{
-		if(!S.sets[clarkson93::simplex::HULL]) continue;
-		for (int i = 0; i < NDim + 1; ++i) //should have better ending condition####
+		for(auto& S : _hull.m_sMgr)
 		{
-			if (i == S.iPeak) continue;
-			auto hash = S.V[i];
-			if (peakSet.find(hash) == peakSet.end())
+			if(!S.sets[clarkson93::simplex::HULL]) continue;
+			for (int i = 0; i < NDim + 1; ++i) //should have better ending condition####
 			{
-				peaks.push_back(S.V[i]);
-				peakSet.insert(hash);
+				if (i == S.iPeak) continue;
+				auto& hash = *(S.V[i]);
+				if (peakSet.find(hash) == peakSet.end())
+				{
+					peaks.push_back(S.V[i]);
+					peakSet.insert(hash);
+				}
 			}
 		}
 	}
+	else
+	{
+		for (auto ref : _origin)
+		{
+			peaks.push_back(ref);
+		}
+	}
+	
 	return std::move(peaks);
+}
+
+bool OriginSimplex::insert(PointRef ref)
+{
+	bool done = false;
+
+	if (_size < 2)
+	{
+		if (_size == 1 && (*ref == *front())) return false;
+		push_back(ref);
+		_size++;
+	}
+	else
+	{
+		val_t dx0 = (*ref)[0] - (*front())[0],
+			dx1 = (*ref)[0] - (*back())[0],
+			dy0 = (*ref)[1] - (*front())[1],
+			dy1 = (*ref)[1] - (*back())[1];
+		if ((!dx0 && !dx1) || (!dy0 && !dy1)) {} //duplicate
+		else if (dx0 * dy1 == dx1 * dy0)
+		{//in a line
+			if ( !(dx0>0 ^ dx1>0) && !(dy0>0 ^ dy1>0) )
+			{//out of facet
+				std::abs(dx0) < std::abs(dx1) ? pop_front() : pop_back();
+				push_back(ref);
+			}
+		}
+		else
+		{
+			done = true;
+			push_back(ref);
+		}
+	}
+	
+	return done;
 }

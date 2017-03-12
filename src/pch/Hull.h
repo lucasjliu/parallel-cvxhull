@@ -12,7 +12,22 @@
 #ifndef _HULL_H
 #define _HULL_H
 
+#include <list>
+
 #include "Points.h"
+
+class OriginSimplex: public std::list<PointRef>
+{
+	using val_t 	= Val_t;
+	using facet_t 	= std::pair<PointRef, PointRef>; //2D so faect is a line segment
+
+public:
+	OriginSimplex() :_size(0) {}
+	bool insert(PointRef ref);
+
+private:
+	size_t		_size;
+};
 
 class Hull
 {
@@ -29,15 +44,14 @@ public:
 	void insert(PointVec& points);
 
 	void clear();
-	
-	void printPeaks();
 
 	std::vector<PointRef> getPeaks();
 
 private:
-	Triangulation_t     _hull;
-	PointRef            _origin[NDim + 2];
-	size_t              _size;
+	Triangulation_t		_hull;
+	OriginSimplex		_origin;
+	bool				_initialized;
+	std::hash<Point>	_ptHash;
 };
 
 #endif
