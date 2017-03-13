@@ -25,7 +25,7 @@ PointVec::PointVec(int num)
 
 PointVec::val_t PointVec::rand()
 {
-    return (val_t)(((long)::rand() % g_scale) - g_range) / 1e3;
+	return (val_t)(((long)::rand() % g_scale) - g_range) / 1e3;
 }
 
 void PointVec::random()
@@ -43,7 +43,7 @@ bool PointVec::operator== (const PointVec& pv) const
 	if (this->size() != pv.size()) return false;
 	PointHashSet s(this->begin(), this->end());
 	return std::accumulate(pv.begin(), pv.end(), true, [&s](bool res, const Point& p)
-        {return res & (s.find(p) != s.end());});
+		{return res & (s.find(p) != s.end());});
 }
 
 bool PointVec::operator!= (const PointVec& pv) const
@@ -55,9 +55,9 @@ double PointVec::jaccard (const PointVec& pv) const
 {
 	PointHashSet s_or(this->begin(), this->end()),
 		s_and = s_or;
-    for (const Point& p : pv)
-        if (s_or.find(p) != s_or.end())
-            s_and.insert(p);
-    s_or.insert(pv.begin(), pv.end());
+	for (const Point& p : pv)
+		if (s_or.find(p) != s_or.end())
+			s_and.insert(p);
+	s_or.insert(pv.begin(), pv.end());
 	return (double)s_and.size() / s_or.size();
 }

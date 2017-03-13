@@ -175,7 +175,7 @@ Vec ParalHull::_flatten(const std::vector<Vec>& vecs, int count)
 	for (auto& vec: vecs)
 		for (auto& elem: vec)
 			res.push_back(elem);
-	return res;
+	return std::move(res);
 }
 
 template <typename Vec>

@@ -22,4 +22,6 @@ void testMarginalitySort();
 
 void testAlg(int seed, int size, int loop = 1000);
 
+void testAlg();
+
 #endif

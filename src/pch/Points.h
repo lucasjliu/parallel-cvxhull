@@ -49,7 +49,7 @@ public:
 
 	double jaccard (const PointVec& pv) const;
 
-    static val_t rand();
+	static val_t rand();
 };
 
 typedef std::size_t hash_t;
@@ -58,14 +58,14 @@ typedef std::unordered_set<PointRef> PointRefHashSet;
 
 namespace std
 {
-    template <> struct hash<Point>
-    {
-        hash_t operator()(const Point & p) const
-        {
-            return std::hash<Val_t>{}(p[0]) ^
-                (std::hash<Val_t>{}(p[1]) << (sizeof(hash_t) / 2 * 8));
-        }
-    };
+	template <> struct hash<Point>
+	{
+		hash_t operator()(const Point & p) const
+		{
+			return std::hash<Val_t>{}(p[0]) ^
+				(std::hash<Val_t>{}(p[1]) << (sizeof(hash_t) / 2 * 8));
+		}
+	};
 }
 
 #endif

@@ -23,10 +23,11 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		testTimer();
-		testUnitTest();
-		testSort();
-		testMarginalitySort();
+		testAlg();
+		// testTimer();
+		// testUnitTest();
+		// testSort();
+		// testMarginalitySort();
 	}
 	
 }

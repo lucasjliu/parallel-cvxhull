@@ -109,7 +109,7 @@ R Marginality::sort(Itr beg, Itr end, GetRef getRef)
 		//LOG_INFO << val.first << " " << (*getRef(idx2itr[val.second]))[0] << " " << (*getRef(idx2itr[val.second]))[1];
 		res.push_back(*idx2itr[val.second]);
 	}
-	return res;
+	return std::move(res);
 }
 
 #endif
